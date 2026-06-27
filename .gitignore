@@ -1,0 +1,4 @@
+# QA / dev artifacts
+shot-*.png
+.playwright-mcp/
+*.log
