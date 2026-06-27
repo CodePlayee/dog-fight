@@ -1,3 +1,9 @@
+# dependencies
+node_modules/
+
+# build output
+dist/
+
 # QA / dev artifacts
 shot-*.png
 .playwright-mcp/

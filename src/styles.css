@@ -1,0 +1,65 @@
+:root{
+  --hud:#7dffea; --hud-dim:#3e8f86; --warn:#ff5a4d; --gold:#ffd45e; --lock:#ff7a3c;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:100%;height:100%;overflow:hidden;background:#05070d;font-family:"Consolas","DejaVu Sans Mono",monospace;color:#cfe;user-select:none}
+#app{position:fixed;inset:0}
+canvas{display:block}
+
+/* ---------- HUD ---------- */
+#hud{position:fixed;inset:0;pointer-events:none;z-index:10}
+.panel{position:absolute;color:var(--hud);text-shadow:0 0 6px rgba(0,0,0,.9);letter-spacing:1px}
+#hud svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+
+/* bottom-left flight instruments */
+#fl-left{left:24px;bottom:22px;min-width:210px}
+.gauge-label{font-size:11px;color:var(--hud-dim);letter-spacing:2px}
+.gauge-val{font-size:30px;font-weight:bold;line-height:1.05}
+.gauge-unit{font-size:12px;color:var(--hud-dim)}
+#throttle-wrap{margin-top:8px;width:200px;height:12px;border:1px solid var(--hud-dim);background:rgba(0,30,28,.35)}
+#throttle-bar{height:100%;width:60%;background:linear-gradient(90deg,#1d8f80,#7dffea);box-shadow:0 0 8px #7dffea}
+
+/* bottom-right weapons */
+#fl-right{right:24px;bottom:22px;text-align:right;min-width:200px}
+.wpn{font-size:15px;margin-top:4px;color:var(--hud-dim)}
+.wpn.active{color:var(--gold);text-shadow:0 0 8px rgba(255,212,94,.6)}
+.wpn b{font-size:19px}
+.ammo-low{color:var(--warn)!important}
+
+/* top center */
+#fl-top{top:16px;left:50%;transform:translateX(-50%);text-align:center}
+#enemies-left{font-size:15px;color:var(--hud)}
+#enemies-left b{font-size:22px;color:var(--gold)}
+#score-top{font-size:12px;color:var(--hud-dim);margin-top:2px}
+
+/* top-left health */
+#health-wrap{top:18px;left:24px}
+#hp-bar-bg{width:230px;height:14px;border:1px solid var(--hud-dim);background:rgba(40,0,0,.3);margin-top:4px}
+#hp-bar{height:100%;width:100%;background:linear-gradient(90deg,#ff5a4d,#ffd45e,#7dffd0);transition:width .12s}
+
+/* messages */
+#msg{top:30%;left:50%;transform:translate(-50%,-50%);text-align:center;font-size:34px;font-weight:bold;color:var(--gold);text-shadow:0 0 18px rgba(255,170,40,.7);opacity:0;transition:opacity .25s}
+#killfeed{top:88px;right:24px;text-align:right;font-size:14px;color:var(--warn)}
+.kf{opacity:.95;animation:kffade 2.6s forwards}
+@keyframes kffade{0%{opacity:0;transform:translateX(20px)}10%{opacity:1;transform:none}80%{opacity:1}100%{opacity:0}}
+
+/* damage vignette + hitmarker */
+#vignette{position:fixed;inset:0;pointer-events:none;z-index:9;box-shadow:inset 0 0 220px 30px rgba(255,40,30,0);transition:box-shadow .1s}
+#hitmark{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:11;font-size:26px;color:#fff;opacity:0;font-weight:bold;text-shadow:0 0 10px #fff}
+
+/* overlays */
+.overlay{position:fixed;inset:0;z-index:30;display:flex;align-items:center;justify-content:center;
+  background:radial-gradient(circle at 50% 35%,rgba(20,40,70,.6),rgba(3,5,12,.94));backdrop-filter:blur(2px)}
+.card{max-width:680px;padding:38px 46px;text-align:center;border:1px solid rgba(125,255,234,.25);
+  background:rgba(6,14,22,.82);box-shadow:0 0 60px rgba(0,0,0,.7),inset 0 0 40px rgba(125,255,234,.05)}
+.title{font-size:46px;letter-spacing:6px;color:#fff;text-shadow:0 0 24px rgba(125,255,234,.5)}
+.subtitle{font-size:14px;letter-spacing:4px;color:var(--gold);margin-top:6px}
+.ctrls{display:grid;grid-template-columns:1fr 1fr;gap:6px 26px;margin:26px auto 8px;max-width:520px;text-align:left;font-size:13.5px;color:#bfe}
+.ctrls .k{color:var(--gold);display:inline-block;min-width:96px}
+.btn{margin-top:24px;pointer-events:auto;cursor:pointer;display:inline-block;padding:13px 40px;font-size:18px;letter-spacing:3px;
+  color:#04110f;background:linear-gradient(90deg,#7dffea,#39c9b6);border:none;box-shadow:0 0 24px rgba(125,255,234,.45);transition:transform .12s}
+.btn:hover{transform:scale(1.05)}
+.hint{margin-top:16px;font-size:12px;color:#5e8;opacity:.8}
+#end-stats{margin:14px 0 4px;font-size:16px;color:#cfe;line-height:1.7}
+.hidden{display:none!important}
+#boot-note{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:40;color:#7dffea;font-size:14px;letter-spacing:2px}
