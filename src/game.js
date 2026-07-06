@@ -52,7 +52,8 @@ export const game={
     clearTimeout(this._vt); this._vt=setTimeout(()=>this.elVig.style.boxShadow='inset 0 0 220px 30px rgba(255,40,30,0)',120); },
   dmgDir(vel){ /* could add directional indicator; vignette suffices */ },
   pickLock(){ // nearest enemy in front cone
-    if(!this.player) return null; let best=null,bd=2; const fwd=this.player.forward();
+    if(!this.player) return null; let best=null,bd=2;
+    const fwd=this.player.forward(TMP.v5); // v5: not clobbered by the v1 scratch below
     for(const e of this.enemies){ if(!e.alive) continue;
       const to=TMP.v1.copy(e.group.position).sub(this.player.group.position); const dist=to.length(); to.normalize();
       const d=fwd.dot(to); if(d>0.9){ const score=(1-d)+dist/8000; if(score<bd){ bd=score; best=e; } } }

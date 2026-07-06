@@ -7,6 +7,7 @@ export const cam={ mode:0, // 0 chase, 1 cockpit
   update(dt,player){
     const p=player.group;
     if(this.mode===0){
+      p.visible=player.alive; // restore model when returning from cockpit view
       const back=TMP.v1.set(0,0,1).applyQuaternion(p.quaternion);
       const up=TMP.v2.set(0,1,0).applyQuaternion(p.quaternion);
       const desired=TMP.v3.copy(p.position).addScaledVector(back,20).addScaledVector(up,5.5);
@@ -14,6 +15,7 @@ export const cam={ mode:0, // 0 chase, 1 cockpit
       const look=TMP.v4.copy(p.position).addScaledVector(player.forward(),40);
       camera.lookAt(look);
     } else {
+      p.visible=false; // hide own airframe: prop disc + cowl would fill the view
       const up=TMP.v2.set(0,1,0).applyQuaternion(p.quaternion);
       const fwd=player.forward();
       camera.position.copy(p.position).addScaledVector(up,1.1).addScaledVector(fwd,1.0);

@@ -24,7 +24,8 @@ export const CFG = {
 
 // shared scratch — reused across modules to avoid per-frame allocations
 export const TMP = { v1:new THREE.Vector3(), v2:new THREE.Vector3(), v3:new THREE.Vector3(),
-              v4:new THREE.Vector3(), q1:new THREE.Quaternion(), q2:new THREE.Quaternion() };
+              v4:new THREE.Vector3(), v5:new THREE.Vector3(), v6:new THREE.Vector3(),
+              q1:new THREE.Quaternion(), q2:new THREE.Quaternion() };
 
 export const FWD=new THREE.Vector3(0,0,-1), UP=new THREE.Vector3(0,1,0), RIGHT=new THREE.Vector3(1,0,0);
 

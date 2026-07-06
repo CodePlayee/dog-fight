@@ -25,20 +25,20 @@ export class Enemy{
     this.group.position.set(Math.cos(a)*900, rand(380,560), -400+Math.sin(a)*900);
     this.vel.set(0,0,0); this.smokeT=0;
   }
-  forward(){ return TMP.v1.set(0,0,-1).applyQuaternion(this.group.quaternion); }
+  forward(out=TMP.v1){ return out.set(0,0,-1).applyQuaternion(this.group.quaternion); }
   update(dt,player){
     if(!this.alive) return;
     this.prop.rotation.z+=42*dt;
     const toP=TMP.v2.copy(player.group.position).sub(this.group.position);
     const dist=toP.length();
-    const fwd=this.forward();
+    const fwd=this.forward(TMP.v5);   // stable scratch: survives player.forward() below
     this.stateT-=dt;
 
     // --- decide desired direction ---
     let desired=TMP.v3;
     const playerOnTail = fwd.dot(TMP.v4.copy(this.group.position).sub(player.group.position).normalize())<-0.2
                          && player.alive
-                         && player.forward().dot(toP.clone().normalize())>0.7 && dist<600;
+                         && player.forward(TMP.v6).dot(toP.clone().normalize())>0.7 && dist<600;
     if(this.stateT<=0){
       if(playerOnTail && Math.random()<0.8){ this.state='evade'; this.stateT=rand(1.2,2.2); this.evadeDir=Math.random()<0.5?1:-1; }
       else { this.state='engage'; this.stateT=rand(1.5,3.0); }

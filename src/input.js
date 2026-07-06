@@ -7,11 +7,10 @@ export const input={ has:k=>keys.has(k), fireMG:false, fireCannon:false };
 const keyMap={'arrowup':'w','arrowdown':'s','arrowleft':'a','arrowright':'d'};
 
 addEventListener('keydown',e=>{ let k=e.key.toLowerCase(); if(keyMap[k])k=keyMap[k];
-  if(['w','a','s','d','q','e','shift','control',' ','f','p','escape','v'].includes(k)||k.length===1){ }
   if(k===' '){ input.fireMG=true; e.preventDefault(); }
   else if(k==='f'){ input.fireCannon=true; }
-  else if(k==='p'||k==='escape'){ game.togglePause(); }
-  else if(k==='v'){ game.toggleCam(); }
+  else if(k==='p'||k==='escape'){ if(!e.repeat) game.togglePause(); }
+  else if(k==='v'){ if(!e.repeat) game.toggleCam(); }
   else keys.add(k);
   if(k==='shift') keys.add('shift'); if(k==='control') keys.add('control');
 });

@@ -23,12 +23,12 @@ export class Player{
   }
   reset(){
     this.group.position.set(0,420,600); this.group.quaternion.identity();
-    this.group.rotateY(Math.PI); // face -Z world (toward bandits)
+    // model nose already points -Z at identity — facing the bandit ring (centered z=-400)
     this.vel.set(0,0,0).addScaledVector(this.forward(),150);
     this.throttle=0.62; this.hp=100; this.alive=true;
     this.mgAmmo=CFG.mg.ammo; this.cannonAmmo=CFG.cannon.ammo;
   }
-  forward(){ return TMP.v1.set(0,0,-1).applyQuaternion(this.group.quaternion); }
+  forward(out=TMP.v1){ return out.set(0,0,-1).applyQuaternion(this.group.quaternion); }
   update(dt,input){
     if(!this.alive) return;
     // throttle
