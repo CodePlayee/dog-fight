@@ -2,6 +2,8 @@
 // Procedural WW2 warbird mesh used for both player and enemies.
 import * as THREE from 'three';
 
+const warbirdResources=new WeakMap();
+
 export function buildWarbird(opt){
   const { body=0x4c5b3e, accent=0xb6402f, glass=0x9fd6e6, roundel=0x2a4f9c, star=0xffffff, nose=0xd0c060 }=opt||{};
   const g=new THREE.Group();
@@ -57,6 +59,21 @@ export function buildWarbird(opt){
   const muzzles=[new THREE.Vector3(-3.6,-0.1,-3.4),new THREE.Vector3(3.6,-0.1,-3.4)];
   const cannonMuzzles=[new THREE.Vector3(-1.2,-0.2,-4.0),new THREE.Vector3(1.2,-0.2,-4.0)];
 
-  g.traverse(o=>{ if(o.isMesh){o.castShadow=false;o.receiveShadow=false;} });
+  const geometries=new Set(), materials=new Set();
+  g.traverse(o=>{ if(o.isMesh){
+    o.castShadow=false; o.receiveShadow=false;
+    if(o.geometry) geometries.add(o.geometry);
+    const mats=Array.isArray(o.material)?o.material:[o.material];
+    for(const mat of mats) if(mat) materials.add(mat);
+  } });
+  warbirdResources.set(g,{geometries,materials});
   return { group:g, prop, muzzles, cannonMuzzles };
+}
+
+export function disposeWarbird(group){
+  group?.removeFromParent();
+  const owned=group&&warbirdResources.get(group); if(!owned) return;
+  for(const geometry of owned.geometries) geometry.dispose();
+  for(const material of owned.materials) material.dispose();
+  warbirdResources.delete(group);
 }

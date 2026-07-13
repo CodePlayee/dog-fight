@@ -2,8 +2,10 @@
 // SVG gunsight, target brackets, lead pip, gauges, killfeed, messages.
 import { CFG, TMP, clamp } from './config.js';
 import { camera } from './core.js';
+import { solveBallisticLead } from './ballistics.js';
 
 export const HUD={
+  _projected:{x:0,y:0,z:0,front:false}, _killTimers:new Set(),
   el:{ hp:document.getElementById('hp-bar'), spd:document.getElementById('spd'), alt:document.getElementById('alt'),
     thr:document.getElementById('throttle-bar'), ammoMg:document.getElementById('ammo-mg'), ammoCannon:document.getElementById('ammo-cannon'),
     wpnMg:document.getElementById('wpn-mg'), wpnCannon:document.getElementById('wpn-cannon'),
@@ -34,7 +36,9 @@ export const HUD={
     mk('line',{x1:x,y1:y-78,x2:x,y2:y-58,stroke:'#7dffea',['stroke-width']:2,opacity:.7});
     mk('path',{d:`M ${x-54} ${y+18} A 54 54 0 0 0 ${x+54} ${y+18}`,fill:'none',stroke:'#7dffea',['stroke-width']:1,opacity:.4});
   },
-  project(p){ TMP.v1.copy(p).project(camera); return { x:(TMP.v1.x*0.5+0.5)*innerWidth, y:(-TMP.v1.y*0.5+0.5)*innerHeight, z:TMP.v1.z, front:TMP.v1.z<1 }; },
+  project(p){ TMP.v1.copy(p).project(camera); const out=this._projected;
+    out.x=(TMP.v1.x*0.5+0.5)*innerWidth; out.y=(-TMP.v1.y*0.5+0.5)*innerHeight;
+    out.z=TMP.v1.z; out.front=TMP.v1.z<1; return out; },
   update(player,enemies,score,lockTarget){
     this.el.hp.style.width=(player.hp/player.maxhp*100)+'%';
     const spd=player.vel.length();
@@ -45,7 +49,7 @@ export const HUD={
     this.el.ammoCannon.textContent=player.cannonAmmo;
     this.el.ammoMg.parentElement.classList.toggle('ammo-low',player.mgAmmo<200);
     this.el.ammoCannon.parentElement.classList.toggle('ammo-low',player.cannonAmmo<20);
-    const left=enemies.filter(e=>e.alive).length;
+    let left=0; for(const e of enemies) if(e.alive) left++;
     this.el.enemies.innerHTML='BANDITS <b>'+left+'</b>';
     this.el.score.textContent='SCORE '+score;
     // brackets
@@ -78,17 +82,23 @@ export const HUD={
     for(;bi<this.brackets.length;bi++) this.brackets[bi].g.style.display='none';
     // lead pip
     if(lockTarget && lockTarget.alive){
-      const t=player.group.position.distanceTo(lockTarget.group.position)/CFG.mg.spd;
-      TMP.v2.copy(lockTarget.group.position).addScaledVector(lockTarget.vel,t);
-      const s=this.project(TMP.v2);
-      if(s.front){ this.lead.style.display=''; const r=7;
+      const t=solveBallisticLead(TMP.v3,player.group.position,player.vel,
+        lockTarget.group.position,lockTarget.vel,CFG.mg.spd,CFG.bulletGrav,CFG.mg.life,TMP.v2);
+      const s=t>=0?this.project(TMP.v2):null;
+      if(s?.front){ this.lead.style.display=''; const r=7;
         this.lead.setAttribute('d',`M ${s.x} ${s.y-r} L ${s.x+r} ${s.y} L ${s.x} ${s.y+r} L ${s.x-r} ${s.y} Z`);
       } else this.lead.style.display='none';
     } else this.lead.style.display='none';
   },
   onResize(){ this.drawSight(); },
-  message(t,col){ this.el.msg.textContent=t; this.el.msg.style.color=col||'#ffd45e'; this.el.msg.style.opacity='1';
-    clearTimeout(this._mt); this._mt=setTimeout(()=>this.el.msg.style.opacity='0',1400); },
+  message(t,col,duration=1400){ clearTimeout(this._mt); this._mt=null;
+    this.el.msg.textContent=t; this.el.msg.style.color=col||'#ffd45e'; this.el.msg.style.opacity=t?'1':'0';
+    if(t&&duration>0) this._mt=setTimeout(()=>this.clearMessage(),duration); },
+  clearMessage(){ clearTimeout(this._mt); this._mt=null; this.el.msg.style.opacity='0'; this.el.msg.textContent=''; },
   kill(t){ const d=document.createElement('div'); d.className='kf'; d.textContent=t; this.el.killfeed.appendChild(d);
-    setTimeout(()=>d.remove(),2600); },
+    const timer=setTimeout(()=>{ d.remove(); this._killTimers.delete(timer); },2600); this._killTimers.add(timer); },
+  resetTransient(){ this.clearMessage();
+    for(const timer of this._killTimers) clearTimeout(timer); this._killTimers.clear(); this.el.killfeed.replaceChildren();
+    if(this.lead) this.lead.style.display='none';
+    for(const bracket of this.brackets||[]) bracket.g.style.display='none'; },
 };

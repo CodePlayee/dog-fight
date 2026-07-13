@@ -6,7 +6,7 @@ import './styles.css';
 import { renderer, scene, camera, composer } from './core.js';
 import './world.js';            // side-effect: lights, sky, terrain, clouds
 import { SFX } from './audio.js';
-import { parts, debris } from './vfx.js';
+import { updateVfx } from './vfx.js';
 import { bullets } from './bullets.js';
 import { HUD } from './hud.js';
 import { input } from './input.js';
@@ -20,17 +20,23 @@ function frame(now){
   let dt=(now-last)/1000; last=now; if(dt>0.05) dt=0.05;
   if(game.running && !game.paused && !game.over){
     game.player.update(dt,input);
-    for(const e of game.enemies) e.update(dt,game.player);
-    bullets.update(dt,game.player,game.enemies);
-    parts.update(dt); debris.update(dt);
-    game.lock=game.pickLock();
-    cam.update(dt,game.player);
-    SFX.engine(game.player.throttle, game.player.vel.length());
-    HUD.update(game.player,game.enemies,game.score,game.lock);
+    if(game.running&&!game.over){
+      for(const e of game.enemies){ e.update(dt,game.player); if(!game.running||game.over) break; }
+    }
+    if(game.running&&!game.over) bullets.update(dt,game.player,game.enemies);
+    if(game.running&&!game.over){
+      game.lock=game.pickLock();
+      cam.update(dt,game.player);
+      SFX.engine(game.player.throttle,game.player.vel.length());
+      HUD.update(game.player,game.enemies,game.score,game.lock);
+    } else {
+      game.lock=null; SFX.silenceEngine();
+      HUD.update(game.player,game.enemies,game.score,null);
+    }
   } else {
-    parts.update(dt); debris.update(dt);
     if(game.player) cam.update(dt,game.player);
   }
+  updateVfx(dt);
   // prop & clouds idle motion handled in updates
   if(composer) composer.render(); else renderer.render(scene,camera);
 }
@@ -47,4 +53,4 @@ document.getElementById('restart-btn').addEventListener('click',()=>{ SFX.resume
 
 // expose for debugging / QA
 import * as THREE from 'three';
-window.__game=game; window.__THREE=THREE;
+if(import.meta.env.DEV){ window.__game=game; window.__THREE=THREE; }

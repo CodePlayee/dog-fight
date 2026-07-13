@@ -24,6 +24,11 @@ export const SFX = {
     this.engOsc2.frequency.setTargetAtTime(f*1.5,t,0.1);
     this.engGain.gain.setTargetAtTime(0.12+throttle*0.12,t,0.2);
   },
+  silenceEngine(immediate=false){ if(!this.on||!this.engGain) return; const t=this.ctx.currentTime;
+    this.engGain.gain.cancelScheduledValues(t);
+    if(immediate) this.engGain.gain.setValueAtTime(0,t);
+    else this.engGain.gain.setTargetAtTime(0,t,0.06);
+  },
   noise(dur,freq,type,gain,sweep){ if(!this.on) return; const t=this.ctx.currentTime;
     const src=this.ctx.createBufferSource(); src.buffer=this.noiseBuf; src.loop=true;
     const f=this.ctx.createBiquadFilter(); f.type=type||'bandpass'; f.frequency.value=freq; f.Q.value=1.1;

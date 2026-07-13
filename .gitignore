@@ -7,4 +7,6 @@ dist/
 # QA / dev artifacts
 shot-*.png
 .playwright-mcp/
+playwright-report/
+test-results/
 *.log

@@ -1,5 +1,6 @@
 :root{
   --hud:#7dffea; --hud-dim:#3e8f86; --warn:#ff5a4d; --gold:#ffd45e; --lock:#ff7a3c;
+  --safe-top:env(safe-area-inset-top,0px);
 }
 *{margin:0;padding:0;box-sizing:border-box}
 html,body{width:100%;height:100%;overflow:hidden;background:#05070d;font-family:"Consolas","DejaVu Sans Mono",monospace;color:#cfe;user-select:none}
@@ -8,12 +9,12 @@ canvas{display:block}
 
 /* ---------- HUD ---------- */
 #hud{position:fixed;inset:0;pointer-events:none;z-index:10}
-.panel{position:absolute;color:var(--hud);text-shadow:0 0 6px rgba(0,0,0,.9);letter-spacing:1px}
+.panel{position:absolute;color:var(--hud);text-shadow:0 0 6px rgba(0,0,0,.9);letter-spacing:0}
 #hud svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
 
 /* bottom-left flight instruments */
 #fl-left{left:24px;bottom:22px;min-width:210px}
-.gauge-label{font-size:11px;color:var(--hud-dim);letter-spacing:2px}
+.gauge-label{font-size:11px;color:var(--hud-dim);letter-spacing:0}
 .gauge-val{font-size:30px;font-weight:bold;line-height:1.05}
 .gauge-unit{font-size:12px;color:var(--hud-dim)}
 #throttle-wrap{margin-top:8px;width:200px;height:12px;border:1px solid var(--hud-dim);background:rgba(0,30,28,.35)}
@@ -52,14 +53,85 @@ canvas{display:block}
   background:radial-gradient(circle at 50% 35%,rgba(20,40,70,.6),rgba(3,5,12,.94));backdrop-filter:blur(2px)}
 .card{max-width:680px;padding:38px 46px;text-align:center;border:1px solid rgba(125,255,234,.25);
   background:rgba(6,14,22,.82);box-shadow:0 0 60px rgba(0,0,0,.7),inset 0 0 40px rgba(125,255,234,.05)}
-.title{font-size:46px;letter-spacing:6px;color:#fff;text-shadow:0 0 24px rgba(125,255,234,.5)}
-.subtitle{font-size:14px;letter-spacing:4px;color:var(--gold);margin-top:6px}
+.title{font-size:46px;letter-spacing:0;color:#fff;text-shadow:0 0 24px rgba(125,255,234,.5)}
+.subtitle{font-size:14px;letter-spacing:0;color:var(--gold);margin-top:6px}
 .ctrls{display:grid;grid-template-columns:1fr 1fr;gap:6px 26px;margin:26px auto 8px;max-width:520px;text-align:left;font-size:13.5px;color:#bfe}
 .ctrls .k{color:var(--gold);display:inline-block;min-width:96px}
-.btn{margin-top:24px;pointer-events:auto;cursor:pointer;display:inline-block;padding:13px 40px;font-size:18px;letter-spacing:3px;
+.btn{margin-top:24px;pointer-events:auto;cursor:pointer;display:inline-block;padding:13px 40px;font-size:18px;letter-spacing:0;
   color:#04110f;background:linear-gradient(90deg,#7dffea,#39c9b6);border:none;box-shadow:0 0 24px rgba(125,255,234,.45);transition:transform .12s}
 .btn:hover{transform:scale(1.05)}
+.btn:focus-visible{outline:2px solid #fff;outline-offset:4px}
 .hint{margin-top:16px;font-size:12px;color:#5e8;opacity:.8}
 #end-stats{margin:14px 0 4px;font-size:16px;color:#cfe;line-height:1.7}
 .hidden{display:none!important}
-#boot-note{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:40;color:#7dffea;font-size:14px;letter-spacing:2px}
+#boot-note{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:40;color:#7dffea;font-size:14px;letter-spacing:0}
+
+/* ---------- touch controls ---------- */
+#touch-controls{display:none;position:absolute;inset:0;pointer-events:none}
+.touch-input #touch-controls{display:block}
+.touch-btn{appearance:none;-webkit-appearance:none;pointer-events:auto;touch-action:none;-webkit-tap-highlight-color:transparent;
+  display:grid;place-items:center;min-width:44px;min-height:44px;padding:0;border:1px solid rgba(125,255,234,.65);border-radius:4px;
+  color:#eafffb;background:rgba(4,13,19,.68);box-shadow:inset 0 0 12px rgba(125,255,234,.08),0 2px 10px rgba(0,0,0,.35);
+  font:700 16px/1 "Consolas","DejaVu Sans Mono",monospace;letter-spacing:0;text-shadow:0 1px 5px #000}
+.touch-btn.is-pressed{color:#04110f;background:#7dffea;border-color:#fff;box-shadow:0 0 14px rgba(125,255,234,.65);transform:translateY(1px)}
+.touch-btn:focus-visible{outline:2px solid #fff;outline-offset:2px}
+.touch-utility{position:absolute;top:max(8px,var(--safe-top));right:max(8px,env(safe-area-inset-right));display:flex;gap:5px}
+.touch-utility-btn{width:44px;height:44px;font-size:11px}
+.touch-flight-pad{position:absolute;left:max(8px,env(safe-area-inset-left));bottom:max(8px,env(safe-area-inset-bottom));
+  width:136px;height:136px;display:grid;grid-template:repeat(3,44px)/repeat(3,44px);gap:2px}
+.touch-flight-pad .touch-btn{width:44px;height:44px}
+.touch-pitch-up{grid-area:1/2}.touch-roll-left{grid-area:2/1}.touch-roll-right{grid-area:2/3}.touch-pitch-down{grid-area:3/2}
+.touch-combat{position:absolute;right:max(8px,env(safe-area-inset-right));bottom:max(8px,env(safe-area-inset-bottom));
+  width:136px;height:136px;display:grid;grid-template-columns:repeat(2,64px);grid-template-rows:80px 48px;gap:8px}
+.touch-combat .touch-btn{width:64px;height:48px}
+.touch-combat .touch-fire{height:80px;font-size:18px}
+.touch-fire-mg{color:var(--gold);border-color:rgba(255,212,94,.8)}
+.touch-fire-cannon{color:#ff9b69;border-color:rgba(255,122,60,.9)}
+.touch-throttle{font-size:24px}
+
+@media (max-width:600px),(any-pointer:coarse){
+  #touch-controls{display:block}
+  .overlay{padding:max(8px,env(safe-area-inset-top)) max(8px,env(safe-area-inset-right)) max(8px,env(safe-area-inset-bottom)) max(8px,env(safe-area-inset-left))}
+  .card{width:100%;max-height:calc(100dvh - 16px);overflow-y:auto;padding:24px 18px}
+  .title{font-size:32px}
+  .subtitle{font-size:11px;margin-top:5px}
+  .ctrls{grid-template-columns:1fr;gap:4px;margin:18px auto 6px;max-width:290px;font-size:11px;line-height:1.35}
+  .ctrls .k{min-width:82px}
+  .hint{margin-top:12px;font-size:10px;line-height:1.4}
+  .btn{margin-top:18px;padding:12px 30px;font-size:16px}
+
+  #health-wrap{top:max(8px,var(--safe-top));left:max(8px,env(safe-area-inset-left))}
+  #health-wrap .gauge-label{font-size:8px}
+  #hp-bar-bg{width:88px;height:10px;margin-top:2px}
+  #fl-top{top:max(6px,var(--safe-top));width:76px}
+  #enemies-left{font-size:10px}
+  #enemies-left b{font-size:16px}
+  #score-top{font-size:9px;margin-top:0}
+
+  #fl-left{left:max(8px,env(safe-area-inset-left));top:calc(max(8px,var(--safe-top)) + 42px);bottom:auto;min-width:0;width:100px}
+  #fl-left .gauge-label{font-size:8px}
+  #fl-left .gauge-val{font-size:20px}
+  #fl-left #alt{font-size:17px!important}
+  #fl-left .gauge-unit{font-size:9px}
+  #throttle-wrap{width:92px;height:8px;margin-top:4px}
+
+  #fl-right{right:max(8px,env(safe-area-inset-right));top:calc(max(8px,var(--safe-top)) + 44px);bottom:auto;min-width:0;width:112px}
+  #fl-right .gauge-label{font-size:8px}
+  .wpn{font-size:10px;margin-top:2px}
+  .wpn b{font-size:14px}
+  #killfeed{top:calc(max(8px,var(--safe-top)) + 108px);right:max(8px,env(safe-area-inset-right));max-width:154px;font-size:10px}
+  #msg{top:29%;max-width:80%;font-size:22px}
+}
+
+@media (hover:none),(pointer:coarse){
+  .ctrls,.hint{display:none}
+  .card{padding-top:28px;padding-bottom:28px}
+  .btn{min-height:46px}
+}
+
+@media (max-height:620px){
+  .card{padding-top:18px;padding-bottom:18px}
+  .hint{display:none}
+  .ctrls{margin-top:12px}
+  .btn{margin-top:14px}
+}

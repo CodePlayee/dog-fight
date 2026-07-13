@@ -30,6 +30,10 @@ class Particles{
     p.col0.set(opt.c0??0xffffff); p.col1.set(opt.c1??opt.c0??0xffffff);
     p.spr.material.color.copy(p.col0); p.spr.material.opacity=opt.opacity??1; p.growth=opt.growth||0;
     return p; }
+  reset(){ this.free.length=0; for(const p of this.items){
+    p.spr.visible=false; p.life=0; p.maxLife=0; p.vel.set(0,0,0);
+    p.spr.position.set(0,0,0); p.spr.scale.set(1,1,1); this.free.push(p);
+  } }
   update(dt){ for(const p of this.items){ if(!p.spr.visible) continue; p.life-=dt;
     if(p.life<=0){ p.spr.visible=false; this.free.push(p); continue; }
     p.vel.y-=p.grav*dt; p.spr.position.addScaledVector(p.vel,dt);
@@ -50,12 +54,32 @@ class Debris{
     d.m.material.color.set(col); d.life=rand(1.2,2.4);
     d.vel.set(rand(-1,1),rand(.2,1),rand(-1,1)).normalize().multiplyScalar(rand(20,70));
     d.spin.set(rand(-6,6),rand(-6,6),rand(-6,6)); } }
+  reset(){ this.free.length=0; for(const d of this.items){
+    d.m.visible=false; d.life=0; d.vel.set(0,0,0); d.spin.set(0,0,0);
+    d.m.position.set(0,0,0); d.m.rotation.set(0,0,0); d.m.scale.set(1,1,1); this.free.push(d);
+  } }
   update(dt){ for(const d of this.items){ if(!d.m.visible) continue; d.life-=dt;
     if(d.life<=0){ d.m.visible=false; this.free.push(d); continue; }
     d.vel.y-=CFG.grav*2*dt; d.m.position.addScaledVector(d.vel,dt);
     d.m.rotation.x+=d.spin.x*dt; d.m.rotation.y+=d.spin.y*dt; d.m.rotation.z+=d.spin.z*dt; } }
 }
 export const debris=new Debris(90);
+const flashes=[];
+
+export function updateVfx(dt){
+  parts.update(dt); debris.update(dt);
+  for(let i=flashes.length-1;i>=0;i--){
+    const f=flashes[i]; f.life-=dt;
+    if(f.life<=0){ f.light.removeFromParent(); f.light.dispose?.(); flashes.splice(i,1); continue; }
+    f.light.intensity=f.intensity*(f.life/f.maxLife);
+  }
+}
+
+export function resetVfx(){
+  parts.reset(); debris.reset();
+  for(const f of flashes){ f.light.removeFromParent(); f.light.dispose?.(); }
+  flashes.length=0;
+}
 
 export function muzzleFlash(pos,color,scale){
   parts.spawn(pos,{life:0.09,scale:scale||9,c0:0xffffff,c1:color,growth:0.5});
@@ -72,7 +96,7 @@ export function smokePuff(pos,vel,big){ parts.spawn(pos,{life:rand(.7,1.4),scale
 export function explosion(pos){
   // flash light
   const fl=new THREE.PointLight(0xffd0a0,9,520); fl.position.copy(pos); scene.add(fl);
-  let t=0; const tick=()=>{ t+=0.03; fl.intensity=9*(1-t/0.4); if(t<0.4) requestAnimationFrame(tick); else scene.remove(fl); }; tick();
+  flashes.push({light:fl,life:0.4,maxLife:0.4,intensity:9});
   // bright core flash + expanding shock pulse
   parts.spawn(pos,{life:0.13,scale:24,c0:0xffffff,c1:0xffd070,growth:1.1});
   parts.spawn(pos,{life:0.28,scale:10,c0:0xfff0c0,c1:0xff8030,growth:7.0,opacity:0.55});

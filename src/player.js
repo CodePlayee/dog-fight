@@ -55,6 +55,7 @@ export class Player{
     this.group.rotateZ(this.angVel.z*dt);
 
     this.physics(dt,spd);
+    this.enforceWorldBounds();
     // weapons
     this.mgCd-=dt; this.cannonCd-=dt;
     if(input.fireMG && this.mgCd<=0 && this.mgAmmo>0){ this.shootMG(); }
@@ -67,6 +68,14 @@ export class Player{
     if(this.group.position.y<=terrainH(this.group.position.x,this.group.position.z)+3){ this.die(true); }
     if(this.group.position.y>CFG.ceiling+200) this.group.position.y=CFG.ceiling+200;
   }
+  enforceWorldBounds(){
+    const x=this.group.position.x,z=this.group.position.z;
+    const radial=Math.hypot(x,z); if(radial<=CFG.worldR) return;
+    const nx=x/radial,nz=z/radial;
+    this.group.position.x=nx*CFG.worldR; this.group.position.z=nz*CFG.worldR;
+    const outwardSpeed=this.vel.x*nx+this.vel.z*nz;
+    if(outwardSpeed>0){ this.vel.x-=nx*outwardSpeed*1.15; this.vel.z-=nz*outwardSpeed*1.15; }
+  }
   physics(dt,spd){
     const fwd=this.forward();
     const up=TMP.v2.set(0,1,0).applyQuaternion(this.group.quaternion);
@@ -75,6 +84,15 @@ export class Player{
     a.addScaledVector(fwd, CFG.thrustMax*this.throttle);
     // gravity
     a.y-=CFG.grav;
+    // A progressively stronger inward force keeps combat inside the AI's
+    // return corridor instead of leaving a safe band at the hard boundary.
+    const radial=Math.hypot(this.group.position.x,this.group.position.z);
+    const returnRadius=CFG.worldR*CFG.worldReturnStart;
+    if(radial>returnRadius){
+      const edge=clamp((radial-returnRadius)/(CFG.worldR-returnRadius),0,1);
+      const strength=CFG.playerReturnAccel*edge*edge*(3-2*edge);
+      a.x-=this.group.position.x/radial*strength; a.z-=this.group.position.z/radial*strength;
+    }
     // lift (along up, scales with speed^2, dies in stall)
     let liftMag=clamp(CFG.liftK*spd*spd,0,CFG.liftMax);
     if(spd<CFG.stallSpd) liftMag*=clamp(spd/CFG.stallSpd,0,1)*0.6;

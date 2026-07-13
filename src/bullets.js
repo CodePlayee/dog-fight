@@ -17,6 +17,17 @@ class Bullets{
       const grp=new THREE.Group(); grp.add(core); grp.add(glow); grp.visible=false; scene.add(grp);
       const b={grp,core,glow,vel:new THREE.Vector3(),prev:new THREE.Vector3(),life:0,dmg:0,from:0,knock:0,size:1};
       this.items.push(b); this.free.push(b); } }
+  recycle(b){
+    if(!b.grp.visible) return;
+    b.grp.visible=false; b.life=0; this.free.push(b);
+  }
+  reset(){
+    this.free.length=0;
+    for(const b of this.items){
+      b.grp.visible=false; b.life=0; b.dmg=0; b.from=0; b.knock=0; b.size=1;
+      b.vel.set(0,0,0); b.prev.set(0,0,0); this.free.push(b);
+    }
+  }
   fire(pos,vel,opt){ const b=this.free.pop(); if(!b) return; b.grp.visible=true;
     b.grp.position.copy(pos); b.prev.copy(pos); b.vel.copy(vel);
     b.life=opt.life; b.dmg=opt.dmg; b.from=opt.from; b.knock=opt.knock||0; b.size=opt.size||1;
@@ -27,7 +38,7 @@ class Bullets{
     return b; }
   update(dt, player, enemies){
     for(const b of this.items){ if(!b.grp.visible) continue;
-      b.life-=dt; if(b.life<=0){ b.grp.visible=false; this.free.push(b); continue; }
+      b.life-=dt; if(b.life<=0){ this.recycle(b); continue; }
       b.prev.copy(b.grp.position);
       b.vel.y-=CFG.bulletGrav*dt;
       b.grp.position.addScaledVector(b.vel,dt);
@@ -37,16 +48,19 @@ class Bullets{
         for(const e of enemies){ if(!e.alive) continue;
           if(segSphere(b.prev,b.grp.position,e.group.position,CFG.hitR)){
             e.damage(b.dmg, b.vel, b.knock); impactSparks(b.grp.position, 0xffa030);
-            b.grp.visible=false; this.free.push(b); break; }
+            this.recycle(b);
+            if(!enemies.some(enemy=>enemy.alive)) return;
+            break; }
         }
       } else { // enemy bullet -> player
         if(player.alive && segSphere(b.prev,b.grp.position,player.group.position,CFG.hitR)){
           player.damage(b.dmg, b.vel); impactSparks(b.grp.position,0xff5030);
-          b.grp.visible=false; this.free.push(b); }
+          this.recycle(b); if(!player.alive) return; }
       }
+      if(!b.grp.visible) continue;
       // ground
       if(b.grp.position.y<=terrainH(b.grp.position.x,b.grp.position.z)+0.5){
-        impactSparks(b.grp.position,0xcfae6a); b.grp.visible=false; this.free.push(b);
+        impactSparks(b.grp.position,0xcfae6a); this.recycle(b);
       }
     }
   }

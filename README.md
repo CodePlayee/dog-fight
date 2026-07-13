@@ -5,6 +5,8 @@ Fly an arcade-physics warbird, down 8 bandits, and don't hit the deck.
 
 ## Run
 
+Requires Node.js `^20.19.0` or `>=22.12.0`.
+
 ```bash
 npm install
 npm run dev      # dev server with HMR (auto-opens browser)
@@ -15,6 +17,15 @@ npm run dev      # dev server with HMR (auto-opens browser)
 ```bash
 npm run build    # production bundle -> dist/
 npm run preview  # serve the built bundle locally
+```
+
+## Test
+
+```bash
+npx playwright install chromium  # first run only
+npm test                         # desktop and touch gameplay checks
+npm run test:prod                # smoke-test the built bundle
+npm run check                    # build + development and production checks
 ```
 
 ## Controls
@@ -30,6 +41,8 @@ npm run preview  # serve the built bundle locally
 | `V` | Cockpit / chase camera |
 | `P` / `Esc` | Pause |
 
+On touch screens, use the left directional pad to pitch and roll. The right controls fire the machine guns or cannon and adjust throttle; `CAM` switches camera and the pause button pauses or resumes the sortie. Touch controls support simultaneous steering and firing.
+
 ## Project layout
 
 The game is split into focused ES modules under `src/`:
@@ -43,10 +56,11 @@ The game is split into focused ES modules under `src/`:
 | `audio.js`   | Procedural WebAudio synth (`SFX`) |
 | `vfx.js`     | Particle + debris pools, muzzle/impact/smoke/explosion |
 | `bullets.js` | Pooled tracers, segment-vs-sphere collision |
+| `ballistics.js` | Shared gravity- and velocity-aware intercept solver |
 | `player.js`  | Player flight model, weapons, damage |
 | `enemy.js`   | Enemy AI (engage/evade), lead-pursuit firing |
 | `hud.js`     | SVG gunsight, brackets, lead pip, gauges, killfeed |
-| `input.js`   | Keyboard + mouse state |
+| `input.js`   | Keyboard, mouse, and touch state |
 | `camera.js`  | Chase / cockpit rig, shake, FOV kick |
 | `game.js`    | Match state, win/lose, overlays, target lock |
 | `main.js`    | Entry point: game loop + boot wiring |
@@ -59,5 +73,5 @@ this circular reference is resolved by ES module live bindings because
 ## Tech
 
 - Three.js 0.160 (local npm dependency)
-- Vite build / dev server
+- Vite 8 build / dev server
 - No art assets — geometry, textures, sky, and audio are all generated at runtime.

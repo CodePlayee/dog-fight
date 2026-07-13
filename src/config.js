@@ -19,7 +19,7 @@ export const CFG = {
   enSpd: 132, enTurn: 0.95, enHP: 80, enFireRange: 760, enFireCone: 0.991,
   enMg: { spd: 900, dmg: 6, rof: 8, spread: 0.02, life: 2.0, color: 0xff5436, size: 1.0 },
   // world
-  groundY: 0, ceiling: 1500, worldR: 7000,
+  groundY: 0, ceiling: 1500, worldR: 7000, worldReturnStart: 0.72, playerReturnAccel: 110,
 };
 
 // shared scratch — reused across modules to avoid per-frame allocations
